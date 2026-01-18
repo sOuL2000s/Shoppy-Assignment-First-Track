@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../api/axiosInstance';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext'; // Keeping the import just in case future logic needs it quickly
 import { FaPlusSquare, FaEdit, FaStore } from 'react-icons/fa';
 
 // --- Sub-Component: Add New Product Form ---
@@ -193,8 +193,8 @@ const ProductManager = ({ products, fetchProducts }) => {
 const SellerDashboard = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    // FIX APPLIED: Removed 'user' from destructuring as it was unused.
-    const { } = useAuth(); 
+    // FIX APPLIED: Removed the entire destructuring line, resolving 'no-empty-pattern'
+    // const { user } = useAuth(); // (Previously causing error)
 
     const fetchSellerProducts = useCallback(async () => {
         setLoading(true);
@@ -203,14 +203,12 @@ const SellerDashboard = () => {
             const response = await axios.get('/seller/products'); 
             setProducts(response.data.data);
             
-            // Client-side filtering is now REMOVED
-            
         } catch (error) {
             console.error("Failed to fetch seller products:", error);
         } finally {
             setLoading(false);
         }
-    }, []); // user.id dependency is no longer strictly necessary here
+    }, []); 
 
     useEffect(() => {
         fetchSellerProducts();
