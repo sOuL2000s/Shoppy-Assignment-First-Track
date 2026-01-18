@@ -2,8 +2,10 @@ const dbConfig = require('../config/db.config');
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
+    port: dbConfig.PORT, // <-- NEW: Include port here
     dialect: dbConfig.dialect,
     operatorAliases: false,
+    dialectOptions: dbConfig.dialectOptions, // <-- CRITICAL: Include dialect options for SSL
     pool: {
         max: dbConfig.pool.max,
         min: dbConfig.pool.min,
@@ -11,7 +13,6 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
         idle: dbConfig.pool.idle
     }
 });
-
 const db = {};
 
 db.Sequelize = Sequelize;
