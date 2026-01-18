@@ -1,3 +1,5 @@
+// shoppy-frontend\src\App.jsx
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -7,7 +9,7 @@ import ProtectedRoute from './components/shared/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import OtpVerification from './pages/OtpVerification';
+// import OtpVerification from './pages/OtpVerification'; // Removed import
 import CustomerDashboard from './pages/CustomerDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 
@@ -23,7 +25,7 @@ const App = () => {
                         <Route path="/" element={<Home />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
-                        <Route path="/verify-otp" element={<OtpVerification />} />
+                        {/* Route removed */}
 
                         <Route path="/customer/dashboard" element={
                             <ProtectedRoute allowedRoles={['customer']}><CustomerDashboard /></ProtectedRoute>

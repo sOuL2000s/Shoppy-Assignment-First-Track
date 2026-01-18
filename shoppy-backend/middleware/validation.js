@@ -1,15 +1,23 @@
+// shoppy-backend\middleware\validation.js
+
 const { errorResponse } = require('../utils/response');
 
 const validateSignup = (req, res, next) => {
-    const { email, password, role } = req.body;
-    if (!email || !password || !role) {
-        return errorResponse(res, 'Email, password, and role are required fields.', 400);
+    // Added OTP field requirement for the final submission
+    const { email, password, role, otp } = req.body; 
+    
+    if (!email || !password || !role || !otp) {
+        return errorResponse(res, 'Email, password, role, and OTP are required fields for registration.', 400);
     }
     if (!['customer', 'seller'].includes(role.toLowerCase())) {
         return errorResponse(res, 'Invalid role specified. Must be customer or seller.', 400);
     }
     if (password.length < 6) {
         return errorResponse(res, 'Password must be at least 6 characters long.', 400);
+    }
+    // Basic OTP validation
+    if (otp.length !== 6 || isNaN(otp)) {
+        return errorResponse(res, 'OTP must be a 6-digit number.', 400);
     }
     next();
 };
@@ -52,5 +60,5 @@ const validateCartQuantity = (req, res, next) => {
 module.exports = {
     validateSignup,
     validateProduct,
-    validateCartQuantity // <-- Exporting the new name
+    validateCartQuantity
 };

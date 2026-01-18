@@ -9,40 +9,62 @@ const OTP_TTL = 600; // 10 minutes
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-const registerUser = async ({ email, password, role }) => {
-    const hashedPassword = bcrypt.hashSync(password, 8);
+// NEW FUNCTION: Handles sending OTP to email and storing it in Redis
+const sendSignupOtp = async (email) => {
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email, isVerified: true } });
+    if (existingUser) {
+         throw new Error('User already registered and verified.');
+    }
     
-    const user = await User.create({ email, password: hashedPassword, role, isVerified: false });
-
+    // Generate and store OTP
     const otp = generateOTP();
-    const redisKey = `otp:${user.email}`;
+    const redisKey = `otp:${email}`;
 
+    // TTL is 10 minutes
     await redisClient.set(redisKey, otp, { EX: OTP_TTL });
-    await sendOtpEmail(user.email, otp);
+    await sendOtpEmail(email, otp);
 
-    return user;
+    return { message: "OTP sent successfully." };
 };
 
-const verifyOtp = async (email, otp) => {
+// MODIFIED FUNCTION: Handles final registration (checks OTP, saves user)
+const finalRegisterUser = async ({ email, password, role, otp }) => {
+    
+    // 1. Verify OTP
     const redisKey = `otp:${email}`;
     const storedOtp = await redisClient.get(redisKey);
 
     if (!storedOtp || storedOtp !== otp) {
         throw new Error('Invalid or expired OTP.');
     }
+    
+    // 2. Check if user already exists (e.g., if they started signup but abandoned it)
+    let user = await User.findOne({ where: { email } });
 
-    const [updatedRows] = await User.update({ isVerified: true }, { where: { email } });
-    if (updatedRows === 0) throw new Error('User not found.');
+    if (user) {
+        if (user.isVerified) {
+             throw new Error('User already registered and verified.');
+        }
+        // User exists but wasn't verified, update their details and mark as verified
+        const hashedPassword = bcrypt.hashSync(password, 8);
+        await User.update({ password: hashedPassword, role, isVerified: true }, { where: { email } });
+        user = await User.findOne({ where: { email } }); // Fetch updated user
+    } else {
+        // 3. Create new user (verified immediately upon successful OTP verification)
+        const hashedPassword = bcrypt.hashSync(password, 8);
+        user = await User.create({ email, password: hashedPassword, role, isVerified: true });
+    }
 
-    await redisClient.del(redisKey);
-    return { message: "Account verified successfully." };
+    await redisClient.del(redisKey); // Clear OTP after successful use
+    return user;
 };
 
 const loginUser = async (email, password) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) throw new Error('User not found.');
-    if (!user.isVerified) throw new Error('Account not verified. Please verify your OTP.');
+    if (!user.isVerified) throw new Error('Account not verified. Please complete signup verification.');
     if (!bcrypt.compareSync(password, user.password)) throw new Error('Invalid Password!');
 
     const token = jwt.sign(
@@ -54,4 +76,8 @@ const loginUser = async (email, password) => {
     return { id: user.id, email: user.email, role: user.role, accessToken: token };
 };
 
-module.exports = { registerUser, verifyOtp, loginUser };
+module.exports = { 
+    sendSignupOtp, 
+    registerUser: finalRegisterUser, // Exporting the new final registration function as registerUser
+    loginUser 
+};

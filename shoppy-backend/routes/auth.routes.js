@@ -10,7 +10,13 @@ module.exports = function(app) {
         next();
     });
 
+    // New route to trigger OTP email send (first step)
+    app.post("/api/auth/send-otp", controller.sendOtp); 
+    
+    // Signup now performs final registration and OTP validation (second step)
     app.post("/api/auth/signup", validateSignup, controller.signup);
-    app.post("/api/auth/verify-otp", controller.verifyOtp);
+    
+    // Removed old verify-otp route
+    
     app.post("/api/auth/login", controller.login);
 };

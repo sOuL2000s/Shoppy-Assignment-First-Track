@@ -15,7 +15,7 @@ try {
         transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
             port: process.env.EMAIL_PORT || 587,
-            secure: process.env.EMAIL_SECURE === 'true',
+            secure: process.env.EMAIL_SECURE === 'true', // Use 'true' for port 465, 'false' for 587
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
@@ -41,7 +41,6 @@ const sendOtpEmail = async (email, otp) => {
     
     // Check 2: If configured, attempt to send the email.
     try {
-        // Note: This is where the long timeout previously occurred on Render.
         await transporter.sendMail({
             from: `"Shoppy Support" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -51,12 +50,12 @@ const sendOtpEmail = async (email, otp) => {
         console.log(`OTP email sent successfully to ${email}`);
         return true;
     } catch (error) {
-        // Check 3: If sending fails at runtime (e.g., connection timeout on Render), 
-        // this still waits for the network timeout (e.g., 30s) before executing.
-        console.error("Error sending OTP email during execution (TIMEOUT LIKELY):", error.message);
+        // Check 3: If sending fails at runtime (e.g., connection timeout or authentication failure)
+        console.error("Error sending OTP email during execution (CHECK SMTP CONFIG):", error.message);
         console.warn(`[OTP LOG - EMAIL FAILURE] OTP for ${email}: ${otp}`);
         
-        // Ensure the API call doesn't return a 500 error to the client
+        // Return true to avoid sending a 500 error to the client, 
+        // relying on the manual log retrieval for testing.
         return true; 
     }
 };

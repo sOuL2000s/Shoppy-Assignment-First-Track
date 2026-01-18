@@ -1,20 +1,26 @@
 const authService = require('../services/auth.service');
 const { successResponse, errorResponse } = require('../utils/response');
 
+// MODIFIED: This now handles the final registration attempt (checks OTP, saves to DB)
 exports.signup = async (req, res, next) => {
     try {
-        const user = await authService.registerUser(req.body);
-        successResponse(res, { email: user.email, role: user.role, message: "Registration successful. Check email for OTP." }, 'User registered.', 201);
+        // The service now expects 'otp' in req.body along with email, password, role
+        const user = await authService.registerUser(req.body); 
+        successResponse(res, { email: user.email, role: user.role, message: "Registration successful. You can now log in." }, 'User registered and verified.', 201);
     } catch (error) {
         next(error);
     }
 };
 
-exports.verifyOtp = async (req, res, next) => {
+// NEW FUNCTION: Handles sending the OTP
+exports.sendOtp = async (req, res, next) => {
     try {
-        const { email, otp } = req.body;
-        const result = await authService.verifyOtp(email, otp);
-        successResponse(res, result, 'OTP verified successfully.');
+        const { email } = req.body;
+        if (!email) {
+            return errorResponse(res, 'Email is required to send OTP.', 400);
+        }
+        const result = await authService.sendSignupOtp(email);
+        successResponse(res, null, result.message, 200);
     } catch (error) {
         next(error);
     }
