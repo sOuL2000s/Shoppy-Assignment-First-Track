@@ -5,6 +5,11 @@ import { useAuth } from '../context/AuthContext';
 const Home = () => {
     const { isAuthenticated, role } = useAuth();
 
+    // Determine the dashboard path robustly: defaults to customer if role is undefined or customer
+    const dashboardPath = role === 'seller' ? '/seller/dashboard' : '/customer/dashboard';
+    // Ensure role text is displayed correctly
+    const displayRole = role ? role.toUpperCase() : 'Authenticated User';
+
     return (
         <div className="text-center py-20">
             <h1 className="text-5xl font-extrabold text-gray-900 mb-4">Welcome to Shoppy V2</h1>
@@ -23,12 +28,11 @@ const Home = () => {
                 </div>
             ) : (
                 <div className="mt-8 p-6 bg-indigo-50 border-l-4 border-indigo-500 inline-block rounded-lg shadow-md">
-                    {/* Check if role exists before using toUpperCase() */}
                     <h2 className="text-2xl font-semibold text-indigo-700 mb-3">
-                        {role ? `You are logged in as a ${role.toUpperCase()}` : 'Welcome Back!'}
+                        {`You are logged in as a ${displayRole}`}
                     </h2>
                     <Link 
-                        to={role === 'seller' ? '/seller/dashboard' : '/customer/dashboard'}
+                        to={dashboardPath} // Use the robustly calculated path
                         className="text-lg text-indigo-600 hover:text-indigo-800 underline"
                     >
                         Go to your Dashboard &rarr;

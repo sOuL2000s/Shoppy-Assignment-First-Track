@@ -12,16 +12,24 @@ const getCart = async (userId) => {
     return cartData ? JSON.parse(cartData) : { items: [], total: 0 };
 };
 
-// Add Item to Cart (Update Redis)
+// Add Item to Cart (Update Redis - INCREMENTING)
 const addItemToCart = async (userId, productId, quantity) => {
     const product = await Product.findByPk(productId);
-    if (!product || product.stock < quantity) throw new Error("Product unavailable.");
+    if (!product) throw new Error("Product not found.");
     
     const cart = await getCart(userId);
     let existingItem = cart.items.find(item => item.productId === productId);
 
+    let currentCartQuantity = existingItem ? existingItem.quantity : 0;
+    let projectedQuantity = currentCartQuantity + quantity;
+
+    if (projectedQuantity > product.stock) {
+        throw new Error(`Insufficient stock. Available stock: ${product.stock}. You currently have ${currentCartQuantity} units in your cart.`);
+    }
+
     if (existingItem) {
-        existingItem.quantity += quantity;
+        // Use the calculated projected quantity
+        existingItem.quantity = projectedQuantity;
     } else {
         cart.items.push({
             productId: product.id, name: product.name,
@@ -33,6 +41,46 @@ const addItemToCart = async (userId, productId, quantity) => {
     await redisClient.set(getCartKey(userId), JSON.stringify(cart));
     return cart;
 };
+
+// FIX: Set Item Quantity (SETTING ABSOLUTE quantity, 0 to remove)
+const setCartItemQuantity = async (userId, productId, newQuantity) => {
+    const cart = await getCart(userId);
+    const existingIndex = cart.items.findIndex(item => item.productId === productId);
+
+    if (newQuantity <= 0) {
+        // Remove item
+        if (existingIndex !== -1) {
+            cart.items.splice(existingIndex, 1);
+        }
+    } else {
+        const product = await Product.findByPk(productId);
+        if (!product) throw new Error("Product not found.");
+
+        if (newQuantity > product.stock) {
+            throw new Error(`Insufficient stock. Available stock: ${product.stock}.`);
+        }
+
+        // Use the price from the database at the time of update
+        const price = parseFloat(product.price); 
+        
+        const itemDetails = {
+            productId: product.id, name: product.name,
+            price: price, quantity: newQuantity
+        };
+
+        if (existingIndex !== -1) {
+            cart.items[existingIndex] = itemDetails; // Update quantity
+        } else {
+            cart.items.push(itemDetails); // Add new item
+        }
+    }
+
+    // Recalculate total
+    cart.total = cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    await redisClient.set(getCartKey(userId), JSON.stringify(cart));
+    return cart;
+};
+
 
 // Checkout (Transactional - DB write & Stock update)
 const checkoutCart = async (userId, address = "Default Shipping Address") => {
@@ -87,5 +135,11 @@ const getCustomerOrders = async (userId) => {
     });
 };
 
-module.exports = { addItemToCart, getCart, checkoutCart, getCustomerOrders, removeItemFromCart: require('./cart.service').removeItemFromCart };
-// (Note: removeItemFromCart is defined in the thought block for brevity but included in the service)
+// Clean up module exports
+module.exports = { 
+    addItemToCart, 
+    getCart, 
+    checkoutCart, 
+    getCustomerOrders,
+    setCartItemQuantity // <--- EXPORT NEW FUNCTION
+};

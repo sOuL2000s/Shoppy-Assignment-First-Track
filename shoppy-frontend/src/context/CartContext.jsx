@@ -36,6 +36,7 @@ export const CartProvider = ({ children }) => {
         if (role !== 'customer') return alert("Only customers can use the cart.");
         setLoading(true);
         try {
+            // This POST endpoint handles INCREMENTING the quantity
             const response = await axios.post('/customer/cart', { productId, quantity });
             setCart(response.data.data);
             alert("Item added successfully!");
@@ -46,6 +47,38 @@ export const CartProvider = ({ children }) => {
         }
     };
     
+    /**
+     * UX Improvement: Sets the specific quantity of a product in the cart.
+     * Uses the new backend PUT route to set the absolute quantity (0 removes item).
+     */
+    const updateCartItemQuantity = async (productId, quantity) => {
+        if (role !== 'customer') return;
+        
+        // Basic validation
+        if (quantity < 0) return alert("Quantity cannot be negative.");
+
+        setLoading(true);
+        try {
+            // FIX: Use the dedicated PUT /customer/cart route for setting quantity
+            const response = await axios.put(`/customer/cart`, { productId, quantity }); 
+            setCart(response.data.data);
+            if (quantity === 0) {
+                 alert("Item removed from cart.");
+            } else {
+                 alert("Cart quantity updated.");
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || "Failed to update cart item.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const removeFromCart = (productId) => {
+        // Removes item by setting quantity to 0
+        updateCartItemQuantity(productId, 0);
+    }
+
     const checkout = async () => {
         if (cart.items.length === 0) {
             alert("Cannot checkout an empty cart.");
@@ -59,13 +92,23 @@ export const CartProvider = ({ children }) => {
             return true;
         } catch (error) {
             alert(error.response?.data?.message || "Checkout failed due to stock or server error.");
+            // If checkout fails, re-fetch the potentially modified cart state
+            fetchCart(); 
             return false;
         } finally {
             setLoading(false);
         }
     };
 
-    const value = { cart, loading, fetchCart, addToCart, checkout };
+    const value = { 
+        cart, 
+        loading, 
+        fetchCart, 
+        addToCart, 
+        checkout,
+        updateCartItemQuantity, 
+        removeFromCart 
+    };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

@@ -1,3 +1,5 @@
+// shoppy-backend/controllers/product.controller.js
+
 const db = require('../models');
 const { successResponse, errorResponse } = require('../utils/response');
 const Product = db.product;
@@ -22,6 +24,20 @@ exports.getProducts = async (req, res, next) => {
             attributes: ['id', 'name', 'price', 'description', 'stock', 'imageUrl', 'sellerId']
         });
         successResponse(res, products, 'Products retrieved.');
+    } catch (error) {
+        next(error);
+    }
+};
+
+// FIX: New Controller Function: Get products for a specific seller
+exports.getSellerProducts = async (req, res, next) => {
+    try {
+        const products = await Product.findAll({
+            where: { sellerId: req.userId }, // Crucial server-side filtering
+            attributes: ['id', 'name', 'price', 'description', 'stock', 'imageUrl', 'sellerId'],
+            order: [['createdAt', 'DESC']]
+        });
+        successResponse(res, products, 'Seller products retrieved.');
     } catch (error) {
         next(error);
     }

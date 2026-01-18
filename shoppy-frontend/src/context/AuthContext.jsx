@@ -12,26 +12,47 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
+        let initialUser = null;
+
         if (storedUser) {
             const userData = JSON.parse(storedUser);
-            // Basic check if token is present, better done with token expiration check
-            if (userData.accessToken) {
-                 setUser(userData);
+            // CRITICAL FIX: Ensure both accessToken and role are present when loading from storage
+            if (userData.accessToken && userData.role) { 
+                 initialUser = userData;
             } else {
+                // If token or role is missing/invalid in storage, clear it
                 localStorage.removeItem('user');
             }
         }
+        
+        // Set both states atomically after reading storage
+        setUser(initialUser);
         setIsLoading(false);
+        
     }, []);
 
     const login = async (email, password) => {
         const response = await axios.post("/auth/login", { email, password });
-        const userData = response.data;
         
-        localStorage.setItem("user", JSON.stringify(userData));
-        setUser(userData);
+        // FIX: Extract user data correctly from the nested 'data' field provided by the backend's successResponse wrapper
+        const userData = response.data.data; 
 
-        navigate(userData.role === 'seller' ? '/seller/dashboard' : '/customer/dashboard');
+        if (!userData || !userData.role) {
+            throw new Error("Login data corrupted: role missing.");
+        }
+
+        const loginData = {
+            id: userData.id,
+            email: userData.email,
+            role: userData.role,
+            accessToken: userData.accessToken
+        };
+        
+        localStorage.setItem("user", JSON.stringify(loginData));
+        setUser(loginData);
+
+        // Navigate based on the newly set role
+        navigate(loginData.role === 'seller' ? '/seller/dashboard' : '/customer/dashboard');
     };
 
     const logout = () => {
@@ -40,7 +61,14 @@ export const AuthProvider = ({ children }) => {
         navigate('/login');
     };
 
-    const value = { user, isLoading, isAuthenticated: !!user, role: user?.role, login, logout };
+    const value = { 
+        user, 
+        isLoading, 
+        isAuthenticated: !!user, 
+        role: user?.role, 
+        login, 
+        logout 
+    };
 
     if (isLoading) return <div className="text-center p-10">Loading...</div>;
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

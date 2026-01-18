@@ -20,6 +20,17 @@ exports.addToCart = async (req, res, next) => {
     }
 };
 
+exports.updateCart = async (req, res, next) => {
+    try {
+        const { productId, quantity } = req.body;
+        // Use the new service function to set the specific quantity
+        const cart = await cartService.setCartItemQuantity(req.userId, productId, quantity);
+        successResponse(res, cart, quantity > 0 ? 'Cart quantity updated.' : 'Item removed from cart.');
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.checkout = async (req, res, next) => {
     try {
         const order = await cartService.checkoutCart(req.userId, req.body.shippingAddress);

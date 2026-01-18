@@ -193,24 +193,23 @@ const ProductManager = ({ products, fetchProducts }) => {
 const SellerDashboard = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth(); // Get user ID from Auth context
+    const { user } = useAuth(); 
 
     const fetchSellerProducts = useCallback(async () => {
         setLoading(true);
         try {
-            // Note: Since we only have a general GET /products endpoint, we rely on the FE to filter by sellerId. 
-            // The BE controller should ideally be updated to support /seller/products GET to filter server-side.
-            // Assuming the BE public route returns `sellerId`:
-            const response = await axios.get('/products'); 
-            const sellerProducts = response.data.data.filter(p => p.sellerId === user.id);
-            setProducts(sellerProducts);
+            // FIX: Call the dedicated Seller API endpoint
+            const response = await axios.get('/seller/products'); 
+            setProducts(response.data.data);
+            
+            // Client-side filtering is now REMOVED
             
         } catch (error) {
             console.error("Failed to fetch seller products:", error);
         } finally {
             setLoading(false);
         }
-    }, [user.id]);
+    }, []); // user.id dependency is no longer strictly necessary here
 
     useEffect(() => {
         fetchSellerProducts();
