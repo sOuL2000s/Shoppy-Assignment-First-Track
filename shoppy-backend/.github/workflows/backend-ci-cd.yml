@@ -1,0 +1,36 @@
+name: Shoppy Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+        
+      # Optional: Add linting or unit test steps here 
+      # - name: Run Linter
+      #   run: npm run lint
+
+      # Automatic deployment trigger to Render only on merge to 'main'
+      - name: Trigger Render Deployment Hook
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          echo "Initiating deployment via Render hook..."
+          curl -X POST -H "Content-Type: application/json" -d '{}' $RENDER_DEPLOY_HOOK
