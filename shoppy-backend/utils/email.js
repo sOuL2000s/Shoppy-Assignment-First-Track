@@ -13,7 +13,9 @@ const transporter = nodemailer.createTransport({
 const sendOtpEmail = async (email, otp) => {
     try {
         await transporter.sendMail({
-            from: `"Shoppy Support" <${process.env.EMAIL_USER}>`,
+            // CRITICAL FIX: Use EMAIL_FROM for the sender address, 
+            // as EMAIL_USER is now the fixed string 'apikey' for SendGrid authentication.
+            from: `"Shoppy Support" <${process.env.EMAIL_FROM}>`, 
             to: email,
             subject: "Shoppy Account Verification OTP",
             html: `Your OTP for Shoppy is: <h1>${otp}</h1>. This is valid for 10 minutes.`,
