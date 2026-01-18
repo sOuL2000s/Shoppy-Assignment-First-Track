@@ -31,6 +31,14 @@ const CartItem = ({ item }) => {
 
     const handleQuantityChange = (delta) => {
         const newQuantity = item.quantity + delta;
+        
+        if (newQuantity < 0) return; // Safety check
+
+        if (newQuantity === 0) {
+            handleRemove(); // Use the dedicated removal path if quantity reaches 0
+            return;
+        }
+        
         // Use the dedicated update function
         updateCartItemQuantity(item.productId, newQuantity);
     };
@@ -50,7 +58,8 @@ const CartItem = ({ item }) => {
                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                     <button 
                         onClick={() => handleQuantityChange(-1)} 
-                        disabled={loading || item.quantity <= 1}
+                        // FIX: Allow decrementing from 1, which calls handleRemove (newQuantity === 0 check)
+                        disabled={loading}
                         className="p-2 text-indigo-600 hover:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition"
                         aria-label="Decrease quantity"
                     >

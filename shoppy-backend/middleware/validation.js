@@ -29,19 +29,28 @@ const validateProduct = (req, res, next) => {
     next();
 };
 
-const validateAddToCart = (req, res, next) => {
+// FIX: Modified to allow quantity=0 for PUT requests (setting/removing)
+const validateCartQuantity = (req, res, next) => {
     const { productId, quantity } = req.body;
+    
     if (!productId || quantity === undefined) {
         return errorResponse(res, 'Product ID and quantity are required.', 400);
     }
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-        return errorResponse(res, 'Quantity must be a positive integer.', 400);
+    if (!Number.isInteger(quantity) || quantity < 0) {
+        // Quantity must be a non-negative integer (0 is allowed here if it's a PUT request)
+        return errorResponse(res, 'Quantity must be a non-negative integer.', 400);
     }
+
+    if (req.method !== 'PUT' && quantity <= 0) {
+        // If it's POST (add/increment), quantity must be strictly positive
+         return errorResponse(res, 'Quantity must be a positive integer when adding an item.', 400);
+    }
+
     next();
 };
 
 module.exports = {
     validateSignup,
     validateProduct,
-    validateAddToCart
+    validateCartQuantity // <-- Exporting the new name
 };
