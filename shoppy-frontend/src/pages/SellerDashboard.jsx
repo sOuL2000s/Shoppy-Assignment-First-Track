@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../api/axiosInstance';
-import { useAuth } from '../context/AuthContext'; // Keeping the import just in case future logic needs it quickly
 import { FaPlusSquare, FaEdit, FaStore } from 'react-icons/fa';
 
 // --- Sub-Component: Add New Product Form ---
