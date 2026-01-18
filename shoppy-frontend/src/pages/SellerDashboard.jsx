@@ -193,7 +193,8 @@ const ProductManager = ({ products, fetchProducts }) => {
 const SellerDashboard = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth(); 
+    // FIX APPLIED: Removed 'user' from destructuring as it was unused.
+    const { } = useAuth(); 
 
     const fetchSellerProducts = useCallback(async () => {
         setLoading(true);
