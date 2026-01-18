@@ -23,7 +23,7 @@ require('./config/redis.config').checkConnection();
 require('./routes/auth.routes')(app);
 require('./routes/product.routes')(app);
 require('./routes/order.routes')(app);
-require('./routes/cart.routes')(app); // <--- REQUIRED FIX: ADD THIS LINE
+require('./routes/cart.routes')(app); // <--- FIX: Cart routes now registered
 
 app.get('/', (req, res) => res.status(200).send({ message: "Shoppy API is running." }));
 

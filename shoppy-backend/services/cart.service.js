@@ -42,7 +42,7 @@ const addItemToCart = async (userId, productId, quantity) => {
     return cart;
 };
 
-// FIX: Set Item Quantity (SETTING ABSOLUTE quantity, 0 to remove)
+// FIX/NEW: Set Item Quantity (SETTING ABSOLUTE quantity, 0 to remove)
 const setCartItemQuantity = async (userId, productId, newQuantity) => {
     const cart = await getCart(userId);
     const existingIndex = cart.items.findIndex(item => item.productId === productId);

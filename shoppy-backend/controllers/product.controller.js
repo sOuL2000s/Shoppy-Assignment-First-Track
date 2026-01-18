@@ -29,7 +29,7 @@ exports.getProducts = async (req, res, next) => {
     }
 };
 
-// FIX: New Controller Function: Get products for a specific seller
+// FIX/NEW: New Controller Function: Get products for a specific seller
 exports.getSellerProducts = async (req, res, next) => {
     try {
         const products = await Product.findAll({

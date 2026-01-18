@@ -4,15 +4,29 @@
 
 /* Base styles for production readiness */
 body {
-    font-family: 'Inter', sans-serif;
+    /* Use a standard, clean font */
+    font-family: 'Inter', sans-serif; 
+    /* Premium off-white background */
     background-color: #f7f9fb;
+    /* Prevent selection for a snappier feel */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom component styles */
+/* Custom component styles (Consistency, A11y, UX) */
 .btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded transition duration-200;
+    /* Focus visible ensures A11y keyboard navigation */
+    @apply bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-2 px-4 rounded-lg 
+           transition duration-200 ease-in-out shadow-md focus:outline-none focus:ring-2 
+           focus:ring-indigo-500 focus:ring-opacity-50;
 }
 
 .card {
-    @apply bg-white border border-gray-200 rounded-lg shadow-md p-4;
+    /* Clean, elevated look */
+    @apply bg-white border border-gray-100 rounded-xl shadow-lg hover:shadow-xl transition duration-300 p-6;
+}
+
+/* Input Consistency */
+input, textarea, select {
+    @apply border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg transition duration-150;
 }

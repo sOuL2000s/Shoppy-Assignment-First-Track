@@ -39,7 +39,8 @@ export const CartProvider = ({ children }) => {
             // This POST endpoint handles INCREMENTING the quantity
             const response = await axios.post('/customer/cart', { productId, quantity });
             setCart(response.data.data);
-            alert("Item added successfully!");
+            // Minimal, non-blocking feedback
+            // alert("Item added successfully!"); 
         } catch (error) {
             alert(error.response?.data?.message || "Failed to add item to cart.");
         } finally {
@@ -55,18 +56,17 @@ export const CartProvider = ({ children }) => {
         if (role !== 'customer') return;
         
         // Basic validation
-        if (quantity < 0) return alert("Quantity cannot be negative.");
+        if (!Number.isInteger(quantity) || quantity < 0) return alert("Invalid quantity.");
 
         setLoading(true);
         try {
             // FIX: Use the dedicated PUT /customer/cart route for setting quantity
             const response = await axios.put(`/customer/cart`, { productId, quantity }); 
             setCart(response.data.data);
-            if (quantity === 0) {
-                 alert("Item removed from cart.");
-            } else {
-                 alert("Cart quantity updated.");
-            }
+            
+            // UX optimization: Do not spam alerts for every quantity change
+            // console.log(quantity === 0 ? "Item removed" : "Quantity updated");
+            
         } catch (error) {
             alert(error.response?.data?.message || "Failed to update cart item.");
         } finally {

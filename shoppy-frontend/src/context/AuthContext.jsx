@@ -15,17 +15,20 @@ export const AuthProvider = ({ children }) => {
         let initialUser = null;
 
         if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            // CRITICAL FIX: Ensure both accessToken and role are present when loading from storage
-            if (userData.accessToken && userData.role) { 
-                 initialUser = userData;
-            } else {
-                // If token or role is missing/invalid in storage, clear it
+            try {
+                const userData = JSON.parse(storedUser);
+                // Robust check for required fields
+                if (userData.accessToken && userData.role && userData.email) { 
+                     initialUser = userData;
+                } else {
+                    localStorage.removeItem('user');
+                }
+            } catch (e) {
+                console.error("Failed to parse user data from local storage", e);
                 localStorage.removeItem('user');
             }
         }
         
-        // Set both states atomically after reading storage
         setUser(initialUser);
         setIsLoading(false);
         
@@ -70,6 +73,6 @@ export const AuthProvider = ({ children }) => {
         logout 
     };
 
-    if (isLoading) return <div className="text-center p-10">Loading...</div>;
+    if (isLoading) return <div className="text-center p-10 text-indigo-600">Loading authentication state...</div>;
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

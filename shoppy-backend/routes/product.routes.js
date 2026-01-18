@@ -10,7 +10,7 @@ module.exports = function(app) {
 
     // SECURE Seller Routes
     
-    // FIX: New Route: Get products only for the logged-in seller
+    // NEW Route: Get products only for the logged-in seller
     app.get("/api/seller/products", [verifyToken, isSeller], controller.getSellerProducts);
 
     app.post(
