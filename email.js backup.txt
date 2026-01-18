@@ -1,0 +1,33 @@
+--- START FILE: shoppy-backend\utils\email.js ---
+
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    }
+});
+
+const sendOtpEmail = async (email, otp) => {
+    try {
+        await transporter.sendMail({
+            from: `"Shoppy Support" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Shoppy Account Verification OTP",
+            html: `Your OTP for Shoppy is: <h1>${otp}</h1>. This is valid for 10 minutes.`,
+        });
+        console.log(`OTP email sent to ${email}`);
+        return true;
+    } catch (error) {
+        console.error("Error sending OTP email:", error);
+        throw new Error("Failed to send verification email. Check SMTP settings.");
+    }
+};
+
+module.exports = { sendOtpEmail };
+
+--- END FILE: shoppy-backend\utils\email.js ---
