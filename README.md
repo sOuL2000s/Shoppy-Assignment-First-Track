@@ -130,3 +130,9 @@ All endpoints are prefixed with `/api`.
 | Method | Path | Description | Role |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/customer/orders` | View previous purchase history. | Customer |
+
+
+Websites : 
+
+https://shoppy-simple-ecommerce-website.netlify.app/
+https://shoppy-assignment-first-track.onrender.com/
